@@ -45,19 +45,18 @@ jobs:
       - name: Azure login
         shell: pwsh
         run: |
+          az login --identity --client-id "e83cfba2-9f60-40cf-b9de-06a2bf3f1d7c"
+          az account set --subscription "973d15c6-6c57-447e-b9c6-6d79b5b784ab"
           az account show -o table
 
       - name: Sync via Deployment Stack
-        uses: azure/bicep-deploy@v2
-        with:
-          type: deploymentStack
-          operation: create
-          name: workload-orchestration-stack
-          scope: resourceGroup
-          resource-group-name: ${{ steps.config.outputs.rg }}
-          subscription-id: 973d15c6-6c57-447e-b9c6-6d79b5b784ab
-          template-file: ${{ steps.config.outputs.template_file }}
-          action-on-unmanage-resources: ${{ steps.config.outputs.unmanage_resources }}
-          action-on-unmanage-resourcegroups: ${{ steps.config.outputs.unmanage_rgs }}
-          deny-settings-mode: ${{ steps.config.outputs.deny_mode }}
-          deny-settings-excluded-actions: ${{ steps.config.outputs.deny_excluded_actions }}
+        shell: pwsh
+        run: |
+          az stack group create `
+            --name workload-orchestration-stack `
+            --resource-group ${{ steps.config.outputs.rg }} `
+            --template-file ${{ steps.config.outputs.template_file }} `
+            --action-on-unmanage resources=${{ steps.config.outputs.unmanage_resources }} resourceGroups=${{ steps.config.outputs.unmanage_rgs }} `
+            --deny-settings-mode ${{ steps.config.outputs.deny_mode }} `
+            --deny-settings-excluded-actions ${{ steps.config.outputs.deny_excluded_actions }} `
+            --yes
