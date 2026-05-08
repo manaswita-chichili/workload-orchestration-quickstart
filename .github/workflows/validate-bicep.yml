@@ -53,14 +53,9 @@ jobs:
         id: validate
         shell: pwsh
         run: |
-          az stack group create `
-            --name workload-orchestration-stack `
+          az deployment group what-if `
             --resource-group ${{ steps.config.outputs.rg }} `
-            --template-file ${{ steps.config.outputs.template_file }} `
-            --action-on-unmanage resources=${{ steps.config.outputs.unmanage_resources }} resourceGroups=${{ steps.config.outputs.unmanage_rgs }} `
-            --deny-settings-mode ${{ steps.config.outputs.deny_mode }} `
-            --deny-settings-excluded-actions ${{ steps.config.outputs.deny_excluded_actions }} `
-            --what-if
+            --template-file ${{ steps.config.outputs.template_file }}
 
       - name: Comment validation result on PR
         if: always()

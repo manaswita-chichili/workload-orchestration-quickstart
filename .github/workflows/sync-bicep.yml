@@ -56,7 +56,8 @@ jobs:
             --name workload-orchestration-stack `
             --resource-group ${{ steps.config.outputs.rg }} `
             --template-file ${{ steps.config.outputs.template_file }} `
-            --action-on-unmanage resources=${{ steps.config.outputs.unmanage_resources }} resourceGroups=${{ steps.config.outputs.unmanage_rgs }} `
+            --action-on-unmanage-resources ${{ steps.config.outputs.unmanage_resources }} `
+            --action-on-unmanage-resource-groups ${{ steps.config.outputs.unmanage_rgs }} `
             --deny-settings-mode ${{ steps.config.outputs.deny_mode }} `
             --deny-settings-excluded-actions ${{ steps.config.outputs.deny_excluded_actions }} `
             --yes
