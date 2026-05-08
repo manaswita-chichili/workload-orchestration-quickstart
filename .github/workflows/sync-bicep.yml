@@ -12,7 +12,7 @@ permissions:
 jobs:
   sync:
     name: Sync Resources
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -20,22 +20,27 @@ jobs:
 
       - name: Read config
         id: config
+        shell: pwsh
         run: |
-          config_file="workload-orchestration.yaml"
-          if [ ! -f "$config_file" ]; then
-            echo "::error::No workload-orchestration.yaml found in repository root"
+          $configFile = "workload-orchestration.yaml"
+          if (-not (Test-Path $configFile)) {
+            Write-Error "No workload-orchestration.yaml found in repository root"
             exit 1
-          fi
+          }
 
-          echo "rg=$(yq -r '.resourceGroup' "$config_file")" >> "$GITHUB_OUTPUT"
-          echo "template_file=$(yq -r '.templateFile // "./workload-orchestration/main.bicep"' "$config_file")" >> "$GITHUB_OUTPUT"
-          echo "deny_mode=$(yq -r '.denySettingsMode // "none"' "$config_file")" >> "$GITHUB_OUTPUT"
-          echo "deny_excluded_actions=$(yq -r '(.denySettingsExcludedActions // []) | join(",")' "$config_file")" >> "$GITHUB_OUTPUT"
-          echo "unmanage_resources=$(yq -r '.actionOnUnmanageResources // "detach"' "$config_file")" >> "$GITHUB_OUTPUT"
-          echo "unmanage_rgs=$(yq -r '.actionOnUnmanageResourceGroups // "detach"' "$config_file")" >> "$GITHUB_OUTPUT"
+          Install-Module -Name powershell-yaml -Force -Scope CurrentUser -ErrorAction SilentlyContinue
+          $config = Get-Content $configFile -Raw | ConvertFrom-Yaml
 
-          echo "Config loaded:"
-          cat "$config_file"
+          echo "rg=$($config.resourceGroup)" >> $env:GITHUB_OUTPUT
+          echo "template_file=$(if ($config.templateFile) { $config.templateFile } else { './workload-orchestration/main.bicep' })" >> $env:GITHUB_OUTPUT
+          echo "deny_mode=$(if ($config.denySettingsMode) { $config.denySettingsMode } else { 'none' })" >> $env:GITHUB_OUTPUT
+          $excludedActions = if ($config.denySettingsExcludedActions) { $config.denySettingsExcludedActions -join ',' } else { '' }
+          echo "deny_excluded_actions=$excludedActions" >> $env:GITHUB_OUTPUT
+          echo "unmanage_resources=$(if ($config.actionOnUnmanageResources) { $config.actionOnUnmanageResources } else { 'detach' })" >> $env:GITHUB_OUTPUT
+          echo "unmanage_rgs=$(if ($config.actionOnUnmanageResourceGroups) { $config.actionOnUnmanageResourceGroups } else { 'detach' })" >> $env:GITHUB_OUTPUT
+
+          Write-Output "Config loaded:"
+          Get-Content $configFile
 
       - name: Azure login
         uses: azure/login@v2
