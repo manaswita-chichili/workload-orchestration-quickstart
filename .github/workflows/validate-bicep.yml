@@ -43,11 +43,9 @@ jobs:
           Get-Content $configFile
 
       - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        shell: pwsh
+        run: |
+          az account show -o table
 
       - name: Validate Bicep templates
         id: validate
@@ -58,7 +56,7 @@ jobs:
           name: workload-orchestration-stack
           scope: resourceGroup
           resource-group-name: ${{ steps.config.outputs.rg }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: 973d15c6-6c57-447e-b9c6-6d79b5b784ab
           template-file: ${{ steps.config.outputs.template_file }}
           action-on-unmanage-resources: ${{ steps.config.outputs.unmanage_resources }}
           action-on-unmanage-resourcegroups: ${{ steps.config.outputs.unmanage_rgs }}
