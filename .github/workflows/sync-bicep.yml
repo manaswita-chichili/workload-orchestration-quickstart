@@ -36,8 +36,12 @@ jobs:
           echo "deny_mode=$(if ($config.denySettingsMode) { $config.denySettingsMode } else { 'none' })" >> $env:GITHUB_OUTPUT
           $excludedActions = if ($config.denySettingsExcludedActions) { $config.denySettingsExcludedActions -join ',' } else { '' }
           echo "deny_excluded_actions=$excludedActions" >> $env:GITHUB_OUTPUT
-          echo "unmanage_resources=$(if ($config.actionOnUnmanageResources) { $config.actionOnUnmanageResources } else { 'detach' })" >> $env:GITHUB_OUTPUT
-          echo "unmanage_rgs=$(if ($config.actionOnUnmanageResourceGroups) { $config.actionOnUnmanageResourceGroups } else { 'detach' })" >> $env:GITHUB_OUTPUT
+          $unmgRes = if ($config.actionOnUnmanageResources) { $config.actionOnUnmanageResources } else { 'detach' }
+          $unmgRgs = if ($config.actionOnUnmanageResourceGroups) { $config.actionOnUnmanageResourceGroups } else { 'detach' }
+          if ($unmgRes -eq 'delete' -and $unmgRgs -eq 'delete') { $aou = 'deleteAll' }
+          elseif ($unmgRes -eq 'delete') { $aou = 'deleteResources' }
+          else { $aou = 'detachAll' }
+          echo "action_on_unmanage=$aou" >> $env:GITHUB_OUTPUT
 
           Write-Output "Config loaded:"
           Get-Content $configFile
@@ -56,8 +60,7 @@ jobs:
             --name workload-orchestration-stack `
             --resource-group ${{ steps.config.outputs.rg }} `
             --template-file ${{ steps.config.outputs.template_file }} `
-            --action-on-unmanage-resources ${{ steps.config.outputs.unmanage_resources }} `
-            --action-on-unmanage-resource-groups ${{ steps.config.outputs.unmanage_rgs }} `
+            --action-on-unmanage ${{ steps.config.outputs.action_on_unmanage }} `
             --deny-settings-mode ${{ steps.config.outputs.deny_mode }} `
             --deny-settings-excluded-actions ${{ steps.config.outputs.deny_excluded_actions }} `
             --yes

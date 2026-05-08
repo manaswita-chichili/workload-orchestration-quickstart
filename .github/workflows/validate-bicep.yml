@@ -36,9 +36,6 @@ jobs:
           echo "deny_mode=$(if ($config.denySettingsMode) { $config.denySettingsMode } else { 'none' })" >> $env:GITHUB_OUTPUT
           $excludedActions = if ($config.denySettingsExcludedActions) { $config.denySettingsExcludedActions -join ',' } else { '' }
           echo "deny_excluded_actions=$excludedActions" >> $env:GITHUB_OUTPUT
-          echo "unmanage_resources=$(if ($config.actionOnUnmanageResources) { $config.actionOnUnmanageResources } else { 'detach' })" >> $env:GITHUB_OUTPUT
-          echo "unmanage_rgs=$(if ($config.actionOnUnmanageResourceGroups) { $config.actionOnUnmanageResourceGroups } else { 'detach' })" >> $env:GITHUB_OUTPUT
-
           Write-Output "Config loaded:"
           Get-Content $configFile
 
